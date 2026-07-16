@@ -1,4 +1,4 @@
-"""Build dota_v1 / dota_v1.5 processed trees (images + labelTxt + COCO) via DOTA_devkit."""
+"""Build unified DOTA processed tree (shared images, versioned COCO) via DOTA_devkit."""
 from __future__ import annotations
 
 import json
@@ -13,9 +13,8 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "DOTA_devkit"))
 import dota_utils as util  # noqa: E402
 
-DOTA_RAW = ROOT / "datasets" / "dota"
-OUT_V1 = ROOT / "datasets" / "dota_v1"
-OUT_V15 = ROOT / "datasets" / "dota_v1.5"
+DOTA_RAW = ROOT / "datasets" / "dota_raw"
+OUT = ROOT / "datasets" / "dota"
 
 CLASSES_V1 = [
     "plane",
@@ -214,15 +213,18 @@ def process_split(
     classes: list[str],
     version: str,
     image_map: dict[str, Path],
+    ann_subdir: str,
+    link_images_for_split: bool,
 ) -> dict:
-    label_dir = out_root / "labelTxt" / split
+    label_dir = out_root / "labelTxt" / version.replace(".", "_") / split
     images_dir = out_root / "images" / split
+    ann_dir = out_root / ann_subdir
     extract_labels(zip_path, label_dir)
-    n_img = link_images(image_map, images_dir, label_dir)
+    n_img = link_images(image_map, images_dir, label_dir) if link_images_for_split else len(list(images_dir.glob("*.png")))
     stats = dota2coco_devkit(
         images_dir,
         label_dir,
-        out_root / "annotations" / f"instances_{split}.json",
+        ann_dir / f"instances_{split}.json",
         classes,
         version,
     )
@@ -239,7 +241,7 @@ def write_readme(path: Path, version: str, all_stats: list[dict]) -> None:
         "- Source raw tree: `datasets/dota` (untouched)",
         "- Parser: `DOTA_devkit` (`dota_utils.parse_dota_poly2`, DOTA2COCO-style export)",
         "- OBB labels: `labelTxt/{{split}}`",
-        "- COCO: `annotations/instances_{{split}}.json`",
+        "- COCO: `annotations_v1/` and `annotations_v1.5/`",
         "",
         "## Splits",
     ]
@@ -264,6 +266,8 @@ def process_version(
     version: str,
     classes: list[str],
     zip_key: str,
+    ann_subdir: str,
+    link_images_for_split: bool,
 ) -> list[dict]:
     stats = []
     for split, cfg in SPLITS.items():
@@ -272,14 +276,19 @@ def process_version(
         if not zip_path.exists():
             print(f"SKIP {version} {split}: missing {zip_path}")
             continue
-        stats.append(process_split(out_root, split, zip_path, classes, version, image_map))
-    write_readme(out_root / "README_LOCAL.md", version, stats)
+        stats.append(
+            process_split(
+                out_root, split, zip_path, classes, version, image_map, ann_subdir, link_images_for_split
+            )
+        )
     return stats
 
 
 def main() -> None:
-    process_version(OUT_V1, "v1.0", CLASSES_V1, "zip_v1")
-    process_version(OUT_V15, "v1.5", CLASSES_V15, "zip_v15")
+    all_stats = []
+    all_stats += process_version(OUT, "v1.0", CLASSES_V1, "zip_v1", "annotations_v1", link_images_for_split=True)
+    all_stats += process_version(OUT, "v1.5", CLASSES_V15, "zip_v15", "annotations_v1.5", link_images_for_split=False)
+    write_readme(OUT / "README_LOCAL.md", "unified", all_stats)
     print("DOTA processing complete")
 
 

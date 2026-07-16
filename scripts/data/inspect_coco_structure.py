@@ -1,8 +1,15 @@
 import json
 from pathlib import Path
 
-datasets = ["dota_v1", "dota_v1.5", "ai_tod", "hit_uav", "hrsc2016_ms", "plant_detection"]
-for ds in datasets:
+DATASETS = [
+    ("dota", ["annotations_v1", "annotations_v1.5"]),
+    ("ai_tod", ["annotations_v1", "annotations_v2"]),
+    ("hit_uav", ["annotations"]),
+    ("hrsc2016_ms", ["annotations"]),
+    ("plant_detection", ["annotations"]),
+]
+
+for ds, ann_dirs in DATASETS:
     root = Path("datasets") / ds
     print(f"\n### {ds}")
     img_root = root / "images"
@@ -12,18 +19,12 @@ for ds in datasets:
         for s in splits:
             n = len(list((img_root / s).glob("*")))
             print(f"    images/{s}: {n} files")
-    ann_dir = root / "annotations"
-    if ann_dir.exists():
+    for ann_dir_name in ann_dirs:
+        ann_dir = root / ann_dir_name
+        if not ann_dir.exists():
+            print(f"  {ann_dir_name}: MISSING")
+            continue
+        print(f"  [{ann_dir_name}]")
         for ann in sorted(ann_dir.glob("instances_*.json")):
             d = json.load(open(ann, encoding="utf-8"))
-            print(f"  {ann.name}: keys={list(d.keys())}")
-            print(f"    counts: images={len(d['images'])} anns={len(d['annotations'])} cats={len(d['categories'])}")
-            if d["images"]:
-                print(f"    image[0]: {d['images'][0]}")
-            if d["annotations"]:
-                a = d["annotations"][0]
-                print(f"    ann[0] keys: {list(a.keys())}")
-                seg = a.get("segmentation")
-                print(f"    ann[0] segmentation: {type(seg).__name__} len={len(seg) if seg else 0}")
-            if d["categories"]:
-                print(f"    categories: {[c['name'] for c in d['categories']]}")
+            print(f"    {ann.name}: images={len(d['images'])} anns={len(d['annotations'])} cats={len(d['categories'])}")

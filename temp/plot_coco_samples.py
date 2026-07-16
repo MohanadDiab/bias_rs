@@ -14,12 +14,13 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 DATASETS_ROOT = ROOT / "datasets"
 DEFAULT_DATASETS = [
-    "dota_v1",
-    "dota_v1.5",
-    "ai_tod",
-    "hit_uav",
-    "hrsc2016_ms",
-    "plant_detection",
+    ("dota", "annotations_v1", "dota_v1"),
+    ("dota", "annotations_v1.5", "dota_v15"),
+    ("ai_tod", "annotations_v1", "ai_tod_v1"),
+    ("ai_tod", "annotations_v2", "ai_tod_v2"),
+    ("hit_uav", "annotations", "hit_uav"),
+    ("hrsc2016_ms", "annotations", "hrsc2016_ms"),
+    ("plant_detection", "annotations", "plant_detection"),
 ]
 MAX_SIDE = 1920
 MIN_ANNS = 5
@@ -170,25 +171,25 @@ def plot_sample(
     plt.close(fig)
 
 
-def process_dataset(dataset: str, split: str, out_dir: Path) -> Path | None:
-    ann_path = DATASETS_ROOT / dataset / "annotations" / f"instances_{split}.json"
+def process_dataset(dataset: str, ann_dir: str, label: str, split: str, out_dir: Path) -> Path | None:
+    ann_path = DATASETS_ROOT / dataset / ann_dir / f"instances_{split}.json"
     img_dir = DATASETS_ROOT / dataset / "images" / split
     if not ann_path.exists():
-        print(f"[SKIP] {dataset}/{split}: missing {ann_path}")
+        print(f"[SKIP] {label}/{split}: missing {ann_path}")
         return None
     coco = load_coco(ann_path)
     image_info = pick_image(coco)
     if image_info is None:
-        print(f"[SKIP] {dataset}/{split}: no annotated images")
+        print(f"[SKIP] {label}/{split}: no annotated images")
         return None
     img_path = img_dir / Path(image_info["file_name"]).name
     if not img_path.exists():
-        print(f"[SKIP] {dataset}/{split}: missing image {img_path}")
+        print(f"[SKIP] {label}/{split}: missing image {img_path}")
         return None
-    out_path = out_dir / f"{dataset}_{split}_sample.png"
+    out_path = out_dir / f"{label}_{split}_sample.png"
     n = len(anns_for_image(coco, image_info["id"]))
-    print(f"[OK] {dataset}/{split}: {image_info['file_name']} ({n} anns) -> {out_path}")
-    plot_sample(dataset, split, coco, image_info, img_path, out_path)
+    print(f"[OK] {label}/{split}: {image_info['file_name']} ({n} anns) -> {out_path}")
+    plot_sample(label, split, coco, image_info, img_path, out_path)
     return out_path
 
 
@@ -211,8 +212,12 @@ def main() -> None:
 
     args.out.mkdir(parents=True, exist_ok=True)
     written = []
-    for ds in args.datasets:
-        path = process_dataset(ds, args.split, args.out)
+    for entry in args.datasets:
+        if isinstance(entry, tuple):
+            ds, ann_dir, label = entry
+        else:
+            ds, ann_dir, label = entry, "annotations", entry
+        path = process_dataset(ds, ann_dir, label, args.split, args.out)
         if path is not None:
             written.append(path)
     print(f"\nWrote {len(written)} figure(s) to {args.out}")
