@@ -1,11 +1,14 @@
 # Local dataset storage (large; regenerate via scripts/data/)
 datasets/
 
+# Vendored DOTA devkit (clone separately when processing DOTA)
+DOTA_devkit/
+
 # Python
 __pycache__/
 *.py[cod]
 .ipynb_checkpoints/
 
-# Build artifacts (DOTA devkit)
+# Build artifacts
 *.so
 build/
