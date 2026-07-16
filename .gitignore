@@ -1,0 +1,11 @@
+# Local dataset storage (large; regenerate via scripts/data/)
+datasets/
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Build artifacts (DOTA devkit)
+*.so
+build/
