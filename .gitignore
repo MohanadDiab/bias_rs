@@ -1,8 +1,9 @@
 # Local dataset storage (large; regenerate via scripts/data/)
 datasets/
 
-# Vendored DOTA devkit (clone separately when processing DOTA)
+# Vendored clones (fetch separately when needed)
 DOTA_devkit/
+AI-TOD/
 
 # Python
 __pycache__/
