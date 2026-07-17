@@ -21,7 +21,8 @@ each dataset YAML overrides `imgsz` and `batch`.
 python -m src.training --config configs/training/ai_tod_v1.yaml
 ```
 
-Runs write to `outputs/training/<run_name>/` (gitignored).
+Runs write to `outputs/training/<run_name>/` (gitignored). Training uses every
+visible CUDA GPU automatically (Ultralytics DDP when more than one); otherwise CPU.
 
 ## Repository layout
 

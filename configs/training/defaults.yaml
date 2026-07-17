@@ -5,7 +5,7 @@ model:
   task: detect
 
 train:
-  device: "0"
+  # device is auto-detected at train time (all visible CUDA GPUs, else CPU)
   workers: 8
   project: outputs/training
 
