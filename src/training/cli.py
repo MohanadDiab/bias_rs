@@ -62,6 +62,7 @@ def main(argv: list[str] | None = None) -> int:
         "model": cfg["model"]["name"],
         "imgsz": cfg["train"]["imgsz"],
         "batch": cfg["train"]["batch"],
+        "epochs": cfg["train"]["epochs"],
     }
     print(json.dumps(summary, indent=2))
     print(f"Training output: {out_dir}")

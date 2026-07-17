@@ -6,6 +6,7 @@ model:
 
 train:
   # device is auto-detected at train time (all visible CUDA GPUs, else CPU)
+  epochs: 12
   workers: 8
   project: outputs/training
 

@@ -15,7 +15,8 @@ pip install -e .
 ## Training
 
 Configs live under `configs/training/`. Shared defaults are in `defaults.yaml`;
-each dataset YAML overrides `imgsz` and `batch`.
+each dataset YAML overrides `imgsz` and `batch`. Shared `epochs` lives in
+`defaults.yaml` (override per dataset if needed).
 
 ```bash
 python -m src.training --config configs/training/ai_tod_v1.yaml

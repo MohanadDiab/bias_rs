@@ -12,7 +12,7 @@ DEFAULTS_PATH = ROOT / "configs" / "training" / "defaults.yaml"
 
 REQUIRED_TOP = ("name", "backend", "dataset", "model", "train", "output")
 REQUIRED_DATASET = ("root", "ann_dir", "train_split", "val_split")
-REQUIRED_TRAIN = ("imgsz", "batch")
+REQUIRED_TRAIN = ("imgsz", "batch", "epochs")
 
 
 def deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
