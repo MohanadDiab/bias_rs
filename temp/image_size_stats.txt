@@ -1,0 +1,53 @@
+### dota
+  train: n=1411
+    unique WxH: 1189
+    width:  min=387  max=12029  median=1824.0  mean=2304.7  std=1544.5
+    height: min=278  max=8115  median=1791.0  mean=2181.3  std=1373.5
+    area:   min=145666  max=60313406  median=3092748.0  mean=6677525.0  std=7932350.2
+  val: n=458
+    unique WxH: 400
+    width:  min=353  max=13383  median=1871.5  mean=2398.0  std=1666.1
+    height: min=511  max=6759  median=1705.5  mean=2211.0  std=1415.3
+    area:   min=259350  max=57372921  median=3253906.5  mean=7034923.9  std=8285443.3
+
+### ai_tod
+  train: n=7510
+    unique WxH: 3
+    width:  800 px (constant)
+    height: min=788  max=801  median=800.0  mean=800.0  std=0.1
+    area:   min=630400  max=640800  median=640000.0  mean=639998.8  std=111.2
+  val: n=1869
+    unique WxH: 2
+    width:  800 px (constant)
+    height: min=799  max=800  median=800.0  mean=800.0  std=0.0
+    area:   min=639200  max=640000  median=640000.0  mean=639999.6  std=18.5
+
+### hit_uav
+  train: n=2029
+    size: 640x512 (constant)
+  val: n=290
+    size: 640x512 (constant)
+
+### hrsc2016_ms
+  train: n=610
+    unique WxH: 585
+    width:  min=586  max=1210  median=1140.0  mean=1088.9  std=117.1
+    height: min=458  max=847  median=813.0  mean=791.5  std=53.6
+    area:   min=285334  max=1010995  median=922829.5  mean=866832.7  std=133977.6
+  val: n=460
+    unique WxH: 451
+    width:  min=481  max=1238  median=1131.0  mean=1084.5  std=120.9
+    height: min=411  max=845  median=813.0  mean=791.0  std=57.9
+    area:   min=197691  max=1036206  median=917160.0  mean=862989.9  std=136869.7
+
+### plant_detection
+  train: n=161
+    unique WxH: 161
+    width:  min=1502  max=4812  median=3176.0  mean=3082.8  std=794.5
+    height: min=496  max=1752  median=976.0  mean=977.2  std=283.0
+    area:   min=1225424  max=7057534  median=2751793.0  mean=3022289.2  std=1253555.0
+  val: n=28
+    unique WxH: 28
+    width:  min=1568  max=4931  median=2737.5  mean=3043.2  std=873.3
+    height: min=568  max=1436  median=946.5  mean=931.5  std=215.0
+    area:   min=1259256  max=5374948  median=2437557.0  mean=2863142.4  std=1130174.3

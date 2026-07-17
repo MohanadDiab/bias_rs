@@ -3,10 +3,13 @@ from pathlib import Path
 
 DATASETS = [
     ("dota", ["annotations_v1", "annotations_v1.5"]),
+    ("dota_1024", ["annotations_v1", "annotations_v1.5"]),
     ("ai_tod", ["annotations_v1", "annotations_v2"]),
     ("hit_uav", ["annotations"]),
     ("hrsc2016_ms", ["annotations"]),
+    ("hrsc2016_ms_640", ["annotations"]),
     ("plant_detection", ["annotations"]),
+    ("plant_detection_640", ["annotations"]),
 ]
 
 for ds, ann_dirs in DATASETS:

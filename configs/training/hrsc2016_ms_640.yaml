@@ -1,0 +1,11 @@
+name: hrsc2016_ms_640_yolo26n
+
+dataset:
+  root: datasets/hrsc2016_ms_640
+  ann_dir: annotations
+  train_split: train
+  val_split: val
+
+train:
+  imgsz: 640
+  batch: 16

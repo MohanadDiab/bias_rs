@@ -1,0 +1,11 @@
+name: dota_1024_v15_yolo26n
+
+dataset:
+  root: datasets/dota_1024
+  ann_dir: annotations_v1.5
+  train_split: train
+  val_split: val
+
+train:
+  imgsz: 1024
+  batch: 8

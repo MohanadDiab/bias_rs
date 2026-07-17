@@ -1,0 +1,13 @@
+backend: ultralytics
+
+model:
+  name: yolo26n.pt
+  task: detect
+
+train:
+  device: "0"
+  workers: 8
+  project: outputs/training
+
+output:
+  root: outputs/training

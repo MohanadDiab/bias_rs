@@ -1,0 +1,11 @@
+name: ai_tod_v1_yolo26n
+
+dataset:
+  root: datasets/ai_tod
+  ann_dir: annotations_v1
+  train_split: train
+  val_split: val
+
+train:
+  imgsz: 800
+  batch: 16

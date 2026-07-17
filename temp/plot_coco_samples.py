@@ -14,13 +14,12 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 DATASETS_ROOT = ROOT / "datasets"
 DEFAULT_DATASETS = [
-    ("dota", "annotations_v1", "dota_v1"),
-    ("dota", "annotations_v1.5", "dota_v15"),
+    ("dota_1024", "annotations_v1", "dota_1024_v1"),
+    ("dota_1024", "annotations_v1.5", "dota_1024_v15"),
     ("ai_tod", "annotations_v1", "ai_tod_v1"),
     ("ai_tod", "annotations_v2", "ai_tod_v2"),
-    ("hit_uav", "annotations", "hit_uav"),
-    ("hrsc2016_ms", "annotations", "hrsc2016_ms"),
-    ("plant_detection", "annotations", "plant_detection"),
+    ("hrsc2016_ms_640", "annotations", "hrsc2016_ms_640"),
+    ("plant_detection_640", "annotations", "plant_detection_640"),
 ]
 MAX_SIDE = 1920
 MIN_ANNS = 5
@@ -39,18 +38,27 @@ def count_anns_per_image(coco: dict) -> dict[int, int]:
     return counts
 
 
-def pick_image(coco: dict) -> dict | None:
+def pick_image(coco: dict, min_width: int = 0, min_height: int = 0) -> dict | None:
     """Prefer image with most anns in [MIN_ANNS, MAX_ANNS]; else max anns."""
     counts = count_anns_per_image(coco)
     if not counts:
         return None
-    by_id = {im["id"]: im for im in coco["images"]}
+    by_id = {
+        im["id"]: im
+        for im in coco["images"]
+        if im["width"] >= min_width and im["height"] >= min_height
+    }
+    if not by_id:
+        return None
     in_range = [(iid, n) for iid, n in counts.items() if MIN_ANNS <= n <= MAX_ANNS and iid in by_id]
     if in_range:
         iid = max(in_range, key=lambda x: x[1])[0]
         return by_id[iid]
-    iid = max(counts.items(), key=lambda x: x[1])[0]
-    return by_id.get(iid)
+    eligible = [(iid, n) for iid, n in counts.items() if iid in by_id]
+    if not eligible:
+        return None
+    iid = max(eligible, key=lambda x: x[1])[0]
+    return by_id[iid]
 
 
 def category_colors(categories: list[dict]) -> dict[int, tuple]:
@@ -100,7 +108,7 @@ def plot_sample(
             im = im.resize(new_size, Image.Resampling.BILINEAR)
         img_arr = im
 
-    fig, ax = plt.subplots(1, 1, figsize=(12, 10))
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
     ax.imshow(img_arr)
     ax.set_axis_off()
 
@@ -167,20 +175,32 @@ def plot_sample(
     ax.set_title(f"{dataset} / {split} / {image_info['file_name']} ({len(anns)} objects)")
     fig.tight_layout()
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path, dpi=150, bbox_inches="tight")
+    # Fixed canvas makes every visualization exactly 1500x1500 pixels.
+    fig.savefig(out_path, dpi=150)
     plt.close(fig)
 
 
-def process_dataset(dataset: str, ann_dir: str, label: str, split: str, out_dir: Path) -> Path | None:
+def process_dataset(
+    dataset: str,
+    ann_dir: str,
+    label: str,
+    split: str,
+    out_dir: Path,
+    min_width: int = 0,
+    min_height: int = 0,
+) -> Path | None:
     ann_path = DATASETS_ROOT / dataset / ann_dir / f"instances_{split}.json"
     img_dir = DATASETS_ROOT / dataset / "images" / split
     if not ann_path.exists():
         print(f"[SKIP] {label}/{split}: missing {ann_path}")
         return None
     coco = load_coco(ann_path)
-    image_info = pick_image(coco)
+    image_info = pick_image(coco, min_width=min_width, min_height=min_height)
     if image_info is None:
-        print(f"[SKIP] {label}/{split}: no annotated images")
+        print(
+            f"[SKIP] {label}/{split}: no annotated images meeting "
+            f"{min_width}x{min_height} minimum"
+        )
         return None
     img_path = img_dir / Path(image_info["file_name"]).name
     if not img_path.exists():
@@ -198,28 +218,48 @@ def main() -> None:
     parser.add_argument(
         "--datasets",
         nargs="+",
-        default=DEFAULT_DATASETS,
-        help="Dataset folder names under datasets/",
+        default=None,
+        help="Optional override of dataset folder names (uses default versioned config if omitted)",
     )
-    parser.add_argument("--split", default="train", help="Split name (default: train)")
+    parser.add_argument(
+        "--splits",
+        nargs="+",
+        default=["train", "val"],
+        help="Splits to plot (default: train val)",
+    )
     parser.add_argument(
         "--out",
         type=Path,
         default=ROOT / "temp" / "vis",
         help="Output directory for PNGs",
     )
+    parser.add_argument("--min-width", type=int, default=640)
+    parser.add_argument("--min-height", type=int, default=640)
     args = parser.parse_args()
+
+    entries = DEFAULT_DATASETS
+    if args.datasets is not None:
+        entries = [(ds, "annotations", ds) for ds in args.datasets]
 
     args.out.mkdir(parents=True, exist_ok=True)
     written = []
-    for entry in args.datasets:
+    for entry in entries:
         if isinstance(entry, tuple):
             ds, ann_dir, label = entry
         else:
             ds, ann_dir, label = entry, "annotations", entry
-        path = process_dataset(ds, ann_dir, label, args.split, args.out)
-        if path is not None:
-            written.append(path)
+        for split in args.splits:
+            path = process_dataset(
+                ds,
+                ann_dir,
+                label,
+                split,
+                args.out,
+                min_width=args.min_width,
+                min_height=args.min_height,
+            )
+            if path is not None:
+                written.append(path)
     print(f"\nWrote {len(written)} figure(s) to {args.out}")
 
 

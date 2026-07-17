@@ -1,0 +1,11 @@
+name: hit_uav_yolo26n
+
+dataset:
+  root: datasets/hit_uav
+  ann_dir: annotations
+  train_split: train
+  val_split: val
+
+train:
+  imgsz: 640
+  batch: 32

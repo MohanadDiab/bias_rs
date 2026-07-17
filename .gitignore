@@ -13,3 +13,6 @@ __pycache__/
 # Build artifacts
 *.so
 build/
+
+# Training / experiment outputs
+outputs/

@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bias-rs"
+version = "0.1.0"
+description = "Bias-aware robust object detection in remote sensing"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "ultralytics>=8.3.0",
+  "PyYAML>=6.0",
+  "Pillow>=10.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+bias-train = "src.training.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
