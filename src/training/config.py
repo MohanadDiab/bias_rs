@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DEFAULTS_PATH = ROOT / "configs" / "training" / "defaults.yaml"
 
 REQUIRED_TOP = ("name", "backend", "dataset", "model", "train", "output")
-REQUIRED_DATASET = ("root", "ann_dir", "train_split", "val_split")
+REQUIRED_DATASET = ("root", "ann_dir", "train_split", "val_split", "cal_split")
 REQUIRED_TRAIN = ("imgsz", "batch", "epochs")
 
 

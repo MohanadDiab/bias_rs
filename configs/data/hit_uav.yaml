@@ -1,0 +1,10 @@
+name: hit_uav
+root: datasets/hit_uav
+ann_dirs:
+  - annotations
+train_split: train
+val_split: val
+cal_split: test
+carve_cal: false
+seed: 42
+notes: Thermal UAV detection. Cal is the existing test split; val is eval. Noise is train-only.

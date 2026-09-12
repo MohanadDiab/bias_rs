@@ -1,0 +1,43 @@
+name: hit_uav_asym_cal_wbf
+seed: 42
+
+dataset:
+  root: datasets/hit_uav
+  ann_dir: annotations
+  train_split: train
+  val_split: val
+  cal_split: test
+
+noise:
+  family: L
+  ratio: 10
+
+train:
+  imgsz: 640
+  batch: 8
+
+experts:
+  - config: configs/training/models/yolo26n.yaml
+    train: { imgsz: 640, batch: 32, epochs: 12 }
+  - config: configs/training/models/rfdetr_nano.yaml
+    train: { imgsz: 640, batch: 8 }
+  - config: configs/training/models/dino.yaml
+  - config: configs/training/models/rtmdet.yaml
+
+pipeline:
+  train: { enabled: true }
+  predict: { splits: [cal, val], conf: 0.3 }
+  prune: { method: nms, iou: 0.65, conf: 0.3 }
+  calibration:
+    enabled: true
+    methods: [ir, ts, platt, lr, beta, dirichlet]
+  gate: { enabled: false, type: softmax }
+  combine: { method: wbf, iou: 0.55 }
+  moe: calibrated
+  eval: { enabled: true, plots: true }
+
+sweep:
+  noise_ratios: [0, 10, 30]
+
+output:
+  root: outputs/experiments

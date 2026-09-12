@@ -1,0 +1,41 @@
+# Shared defaults for self-contained pipeline recipes.
+# Load order: this file, then the YAML passed to `bias-run --config`.
+name: pipeline
+seed: 42
+
+noise:
+  family: clean
+  ratio: 0
+
+train:
+  epochs: 12
+  workers: 8
+  project: outputs/training
+
+pipeline:
+  train:
+    enabled: true
+  predict:
+    splits: [cal, val]
+    conf: 0.3
+  prune:
+    method: nms
+    iou: 0.65
+    conf: 0.3
+    sigma: 0.5
+  calibration:
+    enabled: true
+    methods: [ir, ts, platt, lr, beta, dirichlet]
+  gate:
+    enabled: false
+    type: softmax
+  combine:
+    method: wbf
+    iou: 0.55
+  moe: calibrated
+  eval:
+    enabled: true
+    plots: true
+
+output:
+  root: outputs/experiments

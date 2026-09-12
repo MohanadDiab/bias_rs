@@ -1,0 +1,5 @@
+backend: mmdet
+expert_id: dino
+model:
+  name: dino
+  task: detect

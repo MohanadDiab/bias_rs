@@ -1,0 +1,5 @@
+backend: mmdet
+expert_id: rtmdet
+model:
+  name: rtmdet
+  task: detect

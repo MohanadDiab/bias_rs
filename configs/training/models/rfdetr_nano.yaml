@@ -1,0 +1,5 @@
+backend: rfdetr
+expert_id: rfdetr_nano
+model:
+  name: nano
+  task: detect

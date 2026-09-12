@@ -1,0 +1,12 @@
+name: dota_1024
+root: datasets/dota_1024
+ann_dirs:
+  - annotations_v1
+  - annotations_v1.5
+train_split: train
+val_split: val
+cal_split: cal
+carve_cal: true
+cal_ratio: 0.12
+seed: 42
+notes: 1024-tile HBB DOTA. No native test split; carve cal from train, then noise the remaining train JSON.

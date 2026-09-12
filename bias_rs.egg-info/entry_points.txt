@@ -1,2 +1,0 @@
-[console_scripts]
-bias-train = src.training.cli:main

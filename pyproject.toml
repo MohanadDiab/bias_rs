@@ -7,19 +7,38 @@ name = "bias-rs"
 version = "0.1.0"
 description = "Bias-aware robust object detection in remote sensing"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12,<3.13"
 dependencies = [
   "ultralytics>=8.3.0",
   "PyYAML>=6.0",
   "Pillow>=10.0",
+  "numpy>=1.24",
+  "matplotlib>=3.8",
+  "pycocotools>=2.0.7",
+  "ensemble-boxes>=1.0.9",
+  "rfdetr>=1.0.0",
+  "openmim",
+  "setuptools>=70,<82",
+  "mmdet>=3.3.0",
+  "mmengine>=0.10.7",
+  "mmcv-lite>=2.0.0rc4,<2.2.0",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = ["pytest"]
 
 [project.scripts]
 bias-train = "src.training.cli:main"
+bias-prepare = "src.data.prepare:main"
+bias-predict = "src.training.predict:main"
+bias-experiment = "src.experiments.runner:main"
+bias-run = "src.experiments.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src*"]
+
+[tool.uv]
+default-groups = ["dev"]
+extra-build-dependencies = { mmcv-lite = ["setuptools>=70,<82"] }
+extra-build-variables = { mmcv-lite = { MMCV_WITH_OPS = "0" } }

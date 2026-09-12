@@ -5,6 +5,7 @@ dataset:
   ann_dir: annotations
   train_split: train
   val_split: val
+  cal_split: test
 
 train:
   imgsz: 640

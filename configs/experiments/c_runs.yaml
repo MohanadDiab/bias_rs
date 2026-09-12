@@ -1,0 +1,20 @@
+# Confirmation / class-flip runs. Architecture regime x combiner.
+family: C
+datasets: all
+noise_ratios: [0, 1, 2, 5, 10, 20, 30, 50]
+expert_sets: [asymmetric, symmetric]
+experts:
+  asymmetric:
+    - config: configs/training/models/yolo26n.yaml
+    - config: configs/training/models/rfdetr_nano.yaml
+    - config: configs/training/models/dino.yaml
+    - config: configs/training/models/rtmdet.yaml
+  symmetric:
+    - config: configs/training/models/yolo26n.yaml
+    - config: configs/training/models/yolo26s.yaml
+    - config: configs/training/models/yolo26m.yaml
+fusion: [wbf]
+moe: [simple, learned]
+notes: >
+  Symmetric control is YOLO26 n/s/m. Learned MoE freezes experts and trains
+  an MLP fusion head on the oracle-cal split.

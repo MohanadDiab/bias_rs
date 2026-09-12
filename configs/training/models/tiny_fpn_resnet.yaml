@@ -1,0 +1,5 @@
+backend: tiny_fpn
+expert_id: tiny_fpn_resnet
+model:
+  name: resnet
+  task: detect

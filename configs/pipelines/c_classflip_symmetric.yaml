@@ -1,0 +1,28 @@
+# Confirmation / class-flip runs, symmetric YOLO26 n/s/m control.
+name: c_classflip_symmetric
+seed: 42
+
+noise:
+  family: C
+  ratio: 0
+
+experts:
+  - config: configs/training/models/yolo26n.yaml
+  - config: configs/training/models/yolo26s.yaml
+  - config: configs/training/models/yolo26m.yaml
+
+pipeline:
+  moe: simple
+  combine: { method: wbf, iou: 0.55 }
+
+sweep:
+  datasets:
+    - configs/training/ai_tod_v1.yaml
+    - configs/training/ai_tod_v2.yaml
+    - configs/training/dota_1024_v1.yaml
+    - configs/training/dota_1024_v15.yaml
+    - configs/training/hit_uav.yaml
+    - configs/training/hrsc2016_ms_640.yaml
+    - configs/training/plant_detection_640.yaml
+  noise_ratios: [0, 1, 2, 5, 10, 20, 30, 50]
+  moe: [simple, learned]

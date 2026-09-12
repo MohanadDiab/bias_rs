@@ -1,0 +1,11 @@
+name: plant_detection_640
+root: datasets/plant_detection_640
+ann_dirs:
+  - annotations
+train_split: train
+val_split: val
+cal_split: cal
+carve_cal: true
+cal_ratio: 0.12
+seed: 42
+notes: Plant 640 tiles. No native test split; carve cal from train, then noise the remaining train JSON.

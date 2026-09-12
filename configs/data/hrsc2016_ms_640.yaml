@@ -1,0 +1,10 @@
+name: hrsc2016_ms_640
+root: datasets/hrsc2016_ms_640
+ann_dirs:
+  - annotations
+train_split: train
+val_split: val
+cal_split: test
+carve_cal: false
+seed: 42
+notes: HRSC2016-MS 640 tiles. Cal is the existing test split; val is eval. Noise is train-only.

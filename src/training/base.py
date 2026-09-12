@@ -16,3 +16,7 @@ class BaseTrainer(ABC):
     @abstractmethod
     def train(self, cfg: dict[str, Any], data_path: Path) -> Path:
         """Run training; return the run output directory."""
+
+    @abstractmethod
+    def predict(self, cfg: dict[str, Any], data_path: Path, split: str) -> Path:
+        """Run inference on ``split``; write unified detection JSON; return its path."""

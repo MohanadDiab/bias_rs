@@ -1,0 +1,16 @@
+# Mix-runs: compose L, O, and C at the same percent (order L then O then C).
+family: Mix
+datasets: all
+noise_ratios: [0, 10, 30, 50]
+expert_sets: [asymmetric]
+experts:
+  asymmetric:
+    - config: configs/training/models/yolo26n.yaml
+    - config: configs/training/models/rfdetr_nano.yaml
+    - config: configs/training/models/dino.yaml
+    - config: configs/training/models/rtmdet.yaml
+fusion: [wbf]
+moe: [simple, calibrated, gated, learned]
+notes: >
+  Run after L/O/C main effects. Same percent is applied to L, O, and C in that
+  order. Subset the ratio grid here to keep compute bounded.

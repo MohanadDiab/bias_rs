@@ -1,0 +1,16 @@
+# Objectness runs: omission + spurious boxes. Combiner is the factor of interest.
+family: O
+datasets: all
+noise_ratios: [0, 1, 2, 5, 10, 20, 30, 50]
+expert_sets: [asymmetric]
+experts:
+  asymmetric:
+    - config: configs/training/models/yolo26n.yaml
+    - config: configs/training/models/rfdetr_nano.yaml
+    - config: configs/training/models/dino.yaml
+    - config: configs/training/models/rtmdet.yaml
+fusion: [wbf]
+moe: [simple, calibrated, gated]
+notes: >
+  O-runs use WBF until L-runs pick a winner. Calibrators are chosen by ECE on
+  the clean cal split, never by val AP.

@@ -1,0 +1,11 @@
+name: ai_tod
+root: datasets/ai_tod
+ann_dirs:
+  - annotations_v1
+  - annotations_v2
+train_split: train
+val_split: val
+cal_split: test
+carve_cal: false
+seed: 42
+notes: Tiny-object aerial set. Cal is the existing test split; val is eval. Noise is train-only.

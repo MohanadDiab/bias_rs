@@ -1,0 +1,29 @@
+# Objectness runs: omission + spurious boxes. Combiner is the factor of interest.
+name: o_objectness
+seed: 42
+
+noise:
+  family: O
+  ratio: 0
+
+experts:
+  - config: configs/training/models/yolo26n.yaml
+  - config: configs/training/models/rfdetr_nano.yaml
+  - config: configs/training/models/dino.yaml
+  - config: configs/training/models/rtmdet.yaml
+
+pipeline:
+  moe: simple
+  combine: { method: wbf, iou: 0.55 }
+
+sweep:
+  datasets:
+    - configs/training/ai_tod_v1.yaml
+    - configs/training/ai_tod_v2.yaml
+    - configs/training/dota_1024_v1.yaml
+    - configs/training/dota_1024_v15.yaml
+    - configs/training/hit_uav.yaml
+    - configs/training/hrsc2016_ms_640.yaml
+    - configs/training/plant_detection_640.yaml
+  noise_ratios: [0, 1, 2, 5, 10, 20, 30, 50]
+  moe: [simple, calibrated, gated]

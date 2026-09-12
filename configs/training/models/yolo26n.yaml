@@ -1,0 +1,5 @@
+backend: ultralytics
+expert_id: yolo26n
+model:
+  name: yolo26n.pt
+  task: detect

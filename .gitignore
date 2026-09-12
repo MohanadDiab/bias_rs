@@ -6,13 +6,47 @@ DOTA_devkit/
 AI-TOD/
 
 # Python
+.venv/
 __pycache__/
 *.py[cod]
+*$py.class
 .ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
 
 # Build artifacts
 *.so
 build/
+dist/
+wheels/
+*.egg-info/
+
+# Weights and detector dumps
+*.pt
+*.pth
+*.onnx
+*.engine
+wandb/
+runs/
+
+# Local scratch, plots, and generated stats
+temp/vis/
+temp/*.txt
+temp/*.png
+temp/*.jpg
+temp/*.csv
 
 # Training / experiment outputs
 outputs/
+manuscript/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

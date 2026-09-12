@@ -8,6 +8,8 @@ from typing import Any
 
 import yaml
 
+from src.data.paths import resolve_split_json
+
 
 def _safe_key(name: str) -> str:
     return "".join(c if c.isalnum() or c in "-_." else "_" for c in name)
@@ -104,11 +106,12 @@ def prepare_yolo_dataset(cfg: dict[str, Any]) -> Path:
     """Build YOLO cache + data.yaml; return path to data.yaml."""
     ds = cfg["dataset"]
     root = Path(ds["root"])
-    ann_dir = root / ds["ann_dir"]
     train_split = ds["train_split"]
     val_split = ds["val_split"]
-
-    cache_key = _safe_key(f"{Path(ds['root']).name}__{ds['ann_dir']}")
+    noise = ds.get("noise") or {}
+    family = noise.get("family") or "clean"
+    pct = int(round(float(noise.get("ratio", 0))))
+    cache_key = _safe_key(f"{Path(ds['root']).name}__{ds['ann_dir']}__{family}_{pct}")
     cache_root = Path(cfg["output"]["root"]) / "_data_cache" / cache_key
     labels_root = cache_root / "labels"
     images_root = cache_root / "images"
@@ -116,7 +119,7 @@ def prepare_yolo_dataset(cfg: dict[str, Any]) -> Path:
     stats = {}
     names: dict[int, str] | None = None
     for split in (train_split, val_split):
-        coco_path = ann_dir / f"instances_{split}.json"
+        coco_path = resolve_split_json(cfg, split)
         if not coco_path.exists():
             raise FileNotFoundError(coco_path)
         split_stats = convert_split(

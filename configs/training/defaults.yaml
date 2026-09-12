@@ -4,6 +4,11 @@ model:
   name: yolo26n.pt
   task: detect
 
+dataset:
+  train_split: train
+  val_split: val
+  cal_split: test
+
 train:
   # device is auto-detected at train time (all visible CUDA GPUs, else CPU)
   epochs: 12
