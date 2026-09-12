@@ -1,6 +1,7 @@
 """Trainer backends: prepare layout, RF-DETR train extras, checkpoint lookup."""
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -9,7 +10,13 @@ from PIL import Image
 
 from src.data.coco import save_coco
 from src.data.schema import load_detections
-from src.training.backends.mmdet_backend import architecture_from_cfg
+from src.training.backends.mmdet_backend import (
+    architecture_from_cfg,
+    build_mmdet_config,
+    find_mmdet_zoo_config,
+    mmcv_ops_available,
+    mmdet_trainable,
+)
 from src.training.backends.rfdetr_backend import (
     RFDetrTrainer,
     _model_key,
@@ -227,6 +234,61 @@ def test_resolve_weights_ignores_missing_explicit_best_pt(tmp_path: Path) -> Non
 )
 def test_mmdet_architecture_from_cfg(name: str, arch: str) -> None:
     assert architecture_from_cfg({"model": {"name": name}}) == arch
+
+
+@pytest.mark.parametrize("arch", ["dino", "rtmdet"])
+def test_mmdet_zoo_configs_exist(arch: str) -> None:
+    path = find_mmdet_zoo_config(arch)
+    assert path.exists()
+    assert path.suffix == ".py"
+
+
+def test_build_mmdet_config_parses_without_try_except(tmp_path: Path) -> None:
+    from mmengine.config import Config
+
+    root = _dataset(tmp_path)
+    data = tmp_path / "mmdet_data"
+    for split in ("train", "val"):
+        dest = data / split
+        dest.mkdir(parents=True)
+        (dest / "a.png").write_bytes((root / "images" / split / "a.png").read_bytes())
+        save_coco(_coco(), dest / "annotations.json")
+    cfg = {
+        "model": {"name": "dino"},
+        "train": {"imgsz": 640, "batch": 2, "epochs": 2},
+    }
+    text = build_mmdet_config(cfg, data, tmp_path / "run")
+    assert "try:" not in text
+    assert "_base_ = [" in text
+    assert "num_classes = 1" in text
+    cfg_file = tmp_path / "mmdet_config.py"
+    cfg_file.write_text(text, encoding="utf-8")
+    loaded = Config.fromfile(str(cfg_file))
+    assert int(loaded.model.bbox_head.num_classes) == 1
+    assert int(loaded.train_cfg.max_epochs) == 2
+
+
+def test_mmdet_trainable_false_without_ops() -> None:
+    # Repo pins mmcv-lite; DINO/RTMDet need compiled ops, so Tiny-FPN is used.
+    if not mmcv_ops_available():
+        assert mmdet_trainable() is False
+    else:
+        assert mmdet_trainable() is True
+
+
+def test_mmdet_trainer_falls_back_without_ops(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    import src.training.backends.mmdet_backend as mb
+
+    monkeypatch.setattr(mb, "mmdet_trainable", lambda: False)
+    trainer = mb.MMDetTrainer()
+    assert trainer._fallback is not None
+    cfg = _cfg(tmp_path, backend="mmdet", name="hit_uav__dino__clean")
+    cfg["model"]["name"] = "dino"
+    cfg["expert_id"] = "dino"
+    out = trainer.train(cfg, tmp_path / "unused")
+    assert (out / "best.pt").exists()
+    meta = json.loads((out / "run_meta.json").read_text(encoding="utf-8"))
+    assert meta["backend"] == "tiny_fpn"
 
 
 def test_train_predict_skips_existing_checkpoint(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
