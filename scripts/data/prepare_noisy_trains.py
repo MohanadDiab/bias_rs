@@ -27,10 +27,35 @@ from src.data.layout import check_dataset_layout, check_noise_outputs
 from src.data.paths import NOISE_FAMILIES, RATIO_GRID
 from src.data.prepare import (
     DATA_CONFIG_DIR,
+    dataset_root,
     generate_noisy_trains_for_config,
     load_data_config,
+    missing_cal_dirs,
+    prepare_dataset,
     resolve_data_config_paths,
 )
+
+
+def _dbg(hypothesis_id: str, location: str, message: str, data: dict) -> None:
+    # #region agent log
+    import time
+    from pathlib import Path
+
+    rec = {
+        "sessionId": "437131",
+        "hypothesisId": hypothesis_id,
+        "location": location,
+        "message": message,
+        "data": data,
+        "timestamp": int(time.time() * 1000),
+        "runId": "pre-fix",
+    }
+    line = json.dumps(rec)
+    print(f"DBG {line}", flush=True)
+    log_path = Path(__file__).resolve().parents[2] / "debug-437131.log"
+    with open(log_path, "a", encoding="utf-8") as handle:
+        handle.write(line + "\n")
+    # #endregion
 
 
 def _parse_csv(value: str) -> list[str]:
@@ -108,13 +133,59 @@ def main(argv: list[str] | None = None) -> int:
     failed = False
     for path in paths:
         cfg = load_data_config(path)
-        if args.carve and cfg.get("carve_cal"):
-            from src.data.prepare import prepare_dataset
-
+        root = dataset_root(cfg)
+        will_carve = bool(args.carve and cfg.get("carve_cal"))
+        missing = missing_cal_dirs(root, cfg) if root.exists() else ["no-root"]
+        # #region agent log
+        _dbg(
+            "A",
+            "prepare_noisy_trains.py:main",
+            "dataset loop before carve/check",
+            {
+                "name": cfg.get("name"),
+                "carve_cal": bool(cfg.get("carve_cal")),
+                "args_carve": bool(args.carve),
+                "args_all": bool(args.all),
+                "will_carve": will_carve,
+                "missing_cal_dirs": missing,
+                "cal_split": cfg.get("cal_split"),
+            },
+        )
+        # #endregion
+        if will_carve:
             prepare_dataset(cfg, force=args.force)
+            # #region agent log
+            _dbg(
+                "A",
+                "prepare_noisy_trains.py:main",
+                "prepare_dataset ran",
+                {"name": cfg.get("name"), "missing_after": missing_cal_dirs(dataset_root(cfg), cfg)},
+            )
+            # #endregion
         layout = check_dataset_layout(cfg, allow_missing_cal=False)
+        # #region agent log
+        _dbg(
+            "B",
+            "prepare_noisy_trains.py:main",
+            "layout check result",
+            {
+                "name": cfg.get("name"),
+                "ok": layout.get("ok"),
+                "errors": layout.get("errors"),
+                "allow_missing_cal": False,
+            },
+        )
+        # #endregion
         _print_check(layout)
         if not layout["ok"]:
+            # #region agent log
+            _dbg(
+                "C",
+                "prepare_noisy_trains.py:main",
+                "skipping noise because layout failed",
+                {"name": cfg.get("name")},
+            )
+            # #endregion
             failed = True
             continue
         if args.check_only:
