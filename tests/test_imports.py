@@ -28,6 +28,7 @@ SRC_PACKAGES = [
     "src.data.prepare",
     "src.data.noise",
     "src.data.splits",
+    "src.data.layout",
     "src.training",
     "src.training.cli",
     "src.training.predict",

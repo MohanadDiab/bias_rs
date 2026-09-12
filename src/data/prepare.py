@@ -141,6 +141,51 @@ def prepare_dataset(cfg: dict[str, Any], *, force: bool = False) -> dict[str, An
     }
 
 
+def generate_noisy_trains_for_config(
+    cfg: dict[str, Any],
+    *,
+    families: Sequence[str],
+    ratios: Sequence[int],
+    force: bool = False,
+    carve: bool = False,
+) -> dict[str, Any]:
+    name = cfg.get("name")
+    root = dataset_root(cfg)
+    if not root.exists():
+        return {"name": name, "skipped": True, "reason": f"missing root {root}"}
+    if bool(cfg.get("carve_cal", False)):
+        missing = missing_cal_dirs(root, cfg)
+        if missing:
+            if not carve:
+                raise SystemExit(
+                    f"{name}: missing instances_{cfg.get('cal_split', 'cal')}.json "
+                    f"in {missing}. Carve first: uv run bias-prepare --dataset {name} "
+                    f"(or pass --carve)."
+                )
+            prepare_dataset(cfg, force=force)
+    seed = int(cfg.get("seed", DEFAULT_SEED))
+    noise_stats = []
+    for ann_dir in ann_dir_list(cfg):
+        train_json = root / ann_dir / "instances_train.json"
+        if not train_json.exists():
+            noise_stats.append({"ann_dir": ann_dir, "skipped": True, "reason": f"missing {train_json}"})
+            continue
+        noise_stats.append(
+            {
+                "ann_dir": ann_dir,
+                "runs": generate_noise(
+                    root,
+                    ann_dir,
+                    families=families,
+                    ratios=ratios,
+                    seed=seed,
+                    force=force,
+                ),
+            }
+        )
+    return {"name": name, "root": str(root), "noise": noise_stats}
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Carve a cal split from train for datasets without a native test split.",

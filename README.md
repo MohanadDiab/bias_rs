@@ -116,18 +116,19 @@ datasets/<name>/
 
 `<ann_dir>` is `annotations`, or `annotations_v1` / `annotations_v2` / `annotations_v1.5` for dual-label sets.
 
-For DOTA 1024 and Plant Detection 640, carve cal from train before generating noise:
+Check that layout, then write noisy **train** JSONs (val/test/cal stay clean):
 
 ```bash
-uv run bias-prepare --dataset dota_1024
-uv run bias-prepare --dataset plant_detection_640
+uv run python scripts/data/prepare_noisy_trains.py --all
+uv run python scripts/data/prepare_noisy_trains.py --dataset hit_uav
+uv run python scripts/data/prepare_noisy_trains.py --all --check-only
 ```
 
-Noisy **train** JSONs (val/test/cal stay clean):
+DOTA 1024 and Plant Detection 640 have no test split. Carve cal from train in the same command:
 
 ```bash
-uv run python scripts/data/generate_noise.py --all
-uv run python scripts/data/generate_noise.py --dataset hit_uav
+uv run python scripts/data/prepare_noisy_trains.py --dataset dota_1024 --carve
+uv run python scripts/data/prepare_noisy_trains.py --dataset plant_detection_640 --carve
 ```
 
 Writes `datasets/<name>/annotations_noise/<ann_dir>/<family>_<pct>/instances_train.json`. `bias-run` reads those files; it does not generate them.
