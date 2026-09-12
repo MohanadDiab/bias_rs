@@ -4,6 +4,31 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+# Ultralytics writes weights/best.pt. RF-DETR writes checkpoint_best_total.pth.
+RUN_CHECKPOINT_CANDIDATES = (
+    "weights/best.pt",
+    "best.pt",
+    "checkpoint_best_total.pth",
+    "checkpoint_best_ema.pth",
+    "checkpoint_best_regular.pth",
+    "checkpoint.pth",
+    "best.pth",
+)
+
+
+def run_dir_from_cfg(cfg: dict[str, Any]) -> Path:
+    project = Path(cfg["train"].get("project", cfg["output"]["root"]))
+    return project / cfg["name"]
+
+
+def find_run_checkpoint(cfg: dict[str, Any]) -> Path | None:
+    run = run_dir_from_cfg(cfg)
+    for rel in RUN_CHECKPOINT_CANDIDATES:
+        cand = run / rel
+        if cand.exists():
+            return cand.resolve()
+    return None
+
 
 def resolve_weights(cfg: dict[str, Any]) -> str:
     explicit = cfg.get("model", {}).get("weights")
@@ -11,17 +36,11 @@ def resolve_weights(cfg: dict[str, Any]) -> str:
         path = Path(explicit)
         if path.exists():
             return str(path.resolve())
+    found = find_run_checkpoint(cfg)
+    if found is not None:
+        return str(found)
+    if explicit:
         return str(explicit)
-    project = Path(cfg["train"].get("project", cfg["output"]["root"]))
-    run = project / cfg["name"]
-    for cand in (
-        run / "weights" / "best.pt",
-        run / "best.pt",
-        run / "checkpoint.pth",
-        run / "best.pth",
-    ):
-        if cand.exists():
-            return str(cand.resolve())
     return str(cfg["model"]["name"])
 
 

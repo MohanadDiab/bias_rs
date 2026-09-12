@@ -34,6 +34,41 @@ def _model_key(cfg: dict[str, Any]) -> str:
     return name if name in RFDETR_CLASS else "nano"
 
 
+def require_rfdetr_train() -> None:
+    """Fail before weight download if the Lightning train extra is missing."""
+    try:
+        import pytorch_lightning  # noqa: F401
+        import rfdetr.training  # noqa: F401
+    except ImportError as exc:
+        raise ImportError(
+            "RF-DETR training extras are missing. From the repo root run `uv sync` "
+            "(pyproject depends on rfdetr[train])."
+        ) from exc
+
+
+def _rfdetr_device() -> str:
+    try:
+        import torch
+    except ImportError:
+        return "cpu"
+    return "cuda" if torch.cuda.is_available() else "cpu"
+
+
+def rfdetr_train_kwargs(cfg: dict[str, Any], data_path: Path, out_dir: Path) -> dict[str, Any]:
+    kwargs: dict[str, Any] = {
+        "dataset_dir": str(data_path),
+        "epochs": cfg["train"]["epochs"],
+        "batch_size": cfg["train"]["batch"],
+        "output_dir": str(out_dir),
+        "tensorboard": False,
+        "device": _rfdetr_device(),
+    }
+    imgsz = cfg["train"].get("imgsz")
+    if imgsz is not None:
+        kwargs["resolution"] = int(imgsz)
+    return kwargs
+
+
 def _load_rfdetr_class(key: str):
     import rfdetr
 
@@ -88,18 +123,14 @@ class RFDetrTrainer(BaseTrainer):
         return cache_root
 
     def train(self, cfg: dict[str, Any], data_path: Path) -> Path:
+        require_rfdetr_train()
         key = _model_key(cfg)
         cls = _load_rfdetr_class(key)
         project = Path(cfg["train"].get("project", cfg["output"]["root"]))
         out_dir = project / cfg["name"]
         out_dir.mkdir(parents=True, exist_ok=True)
         model = cls()
-        kwargs: dict[str, Any] = {
-            "dataset_dir": str(data_path),
-            "epochs": cfg["train"]["epochs"],
-            "batch_size": cfg["train"]["batch"],
-            "output_dir": str(out_dir),
-        }
+        kwargs = rfdetr_train_kwargs(cfg, data_path, out_dir)
         t0 = time.perf_counter()
         model.train(**kwargs)
         meta = {

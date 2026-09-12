@@ -24,6 +24,7 @@ from src.experiments.schema import PipelineRun
 from src.moe import FusionMLP, SoftmaxGate, calibrated_moe, gated_moe, learned_moe, simple_moe
 from src.training.config import ROOT
 from src.training.registry import get_trainer
+from src.training.weights import find_run_checkpoint
 
 
 def _job_dir(job: dict[str, Any]) -> Path:
@@ -68,10 +69,15 @@ def _train_predict(
     if prepare_only:
         return run_dir
     if do_train:
-        run_dir = trainer.train(cfg, data_path)
-        weights = run_dir / "weights" / "best.pt"
-        fallback = run_dir / "best.pt"
-        cfg.setdefault("model", {})["weights"] = str(weights if weights.exists() else fallback)
+        existing = find_run_checkpoint(cfg)
+        if existing is not None:
+            print(f"skip existing train {cfg['name']}: {existing}")
+            cfg.setdefault("model", {})["weights"] = str(existing)
+        else:
+            run_dir = trainer.train(cfg, data_path)
+            found = find_run_checkpoint(cfg)
+            if found is not None:
+                cfg.setdefault("model", {})["weights"] = str(found)
     if do_predict:
         for split in _predict_splits(cfg, splits):
             trainer.predict(cfg, data_path, split)

@@ -17,6 +17,8 @@ REQUIRED = [
     "torchvision",
     "cv2",
     "rfdetr",
+    "pytorch_lightning",
+    "torchmetrics",
     "mim",
     "mmdet",
     "mmengine",
@@ -82,6 +84,14 @@ def test_rfdetr_api() -> None:
     assert getattr(rfdetr, "RFDETRNano", None) is not None
 
 
+def test_rfdetr_train_extra_imports() -> None:
+    import pytorch_lightning
+    import rfdetr.training
+
+    assert pytorch_lightning.__version__
+    assert rfdetr.training is not None
+
+
 def test_openmim_api() -> None:
     import mim
 
@@ -103,3 +113,10 @@ def test_mmdet_trainer_is_registered() -> None:
 
     trainer = get_trainer("mmdet")
     assert type(trainer).__name__ == "MMDetTrainer"
+
+
+def test_rfdetr_trainer_is_registered() -> None:
+    from src.training.registry import get_trainer
+
+    trainer = get_trainer("rfdetr")
+    assert type(trainer).__name__ == "RFDetrTrainer"
