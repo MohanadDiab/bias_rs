@@ -124,11 +124,11 @@ uv run python scripts/data/prepare_noisy_trains.py --dataset hit_uav
 uv run python scripts/data/prepare_noisy_trains.py --all --check-only
 ```
 
-DOTA 1024 and Plant Detection 640 have no test split. Carve cal from train in the same command:
+DOTA 1024 and Plant Detection 640 have no test split. The script carves cal from train automatically if `instances_cal.json` is missing:
 
 ```bash
-uv run python scripts/data/prepare_noisy_trains.py --dataset dota_1024 --carve
-uv run python scripts/data/prepare_noisy_trains.py --dataset plant_detection_640 --carve
+uv run python scripts/data/prepare_noisy_trains.py --dataset dota_1024
+uv run python scripts/data/prepare_noisy_trains.py --dataset plant_detection_640
 ```
 
 Writes `datasets/<name>/annotations_noise/<ann_dir>/<family>_<pct>/instances_train.json`. `bias-run` reads those files; it does not generate them.

@@ -15,7 +15,7 @@ Examples:
     uv run python scripts/data/prepare_noisy_trains.py --all
     uv run python scripts/data/prepare_noisy_trains.py --dataset hit_uav
     uv run python scripts/data/prepare_noisy_trains.py --all --check-only
-    uv run python scripts/data/prepare_noisy_trains.py --dataset dota_1024 --carve
+    uv run python scripts/data/prepare_noisy_trains.py --dataset dota_1024
 """
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ def _dbg(hypothesis_id: str, location: str, message: str, data: dict) -> None:
         "message": message,
         "data": data,
         "timestamp": int(time.time() * 1000),
-        "runId": "pre-fix",
+        "runId": "post-fix",
     }
     line = json.dumps(rec)
     print(f"DBG {line}", flush=True)
@@ -105,7 +105,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--carve",
         action="store_true",
-        help="For datasets without test, carve cal from train before the layout check and noise write",
+        help="Force re-carve of cal even if instances_cal.json already exists",
     )
     return parser
 
@@ -134,8 +134,9 @@ def main(argv: list[str] | None = None) -> int:
     for path in paths:
         cfg = load_data_config(path)
         root = dataset_root(cfg)
-        will_carve = bool(args.carve and cfg.get("carve_cal"))
         missing = missing_cal_dirs(root, cfg) if root.exists() else ["no-root"]
+        need_carve = bool(cfg.get("carve_cal")) and bool(missing) and root.exists()
+        will_carve = (need_carve and not args.check_only) or bool(args.carve and cfg.get("carve_cal"))
         # #region agent log
         _dbg(
             "A",
@@ -146,13 +147,16 @@ def main(argv: list[str] | None = None) -> int:
                 "carve_cal": bool(cfg.get("carve_cal")),
                 "args_carve": bool(args.carve),
                 "args_all": bool(args.all),
+                "check_only": bool(args.check_only),
                 "will_carve": will_carve,
+                "need_carve": need_carve,
                 "missing_cal_dirs": missing,
                 "cal_split": cfg.get("cal_split"),
             },
         )
         # #endregion
         if will_carve:
+            print(f"  carving cal split from train ({cfg.get('name')})")
             prepare_dataset(cfg, force=args.force)
             # #region agent log
             _dbg(
@@ -162,7 +166,8 @@ def main(argv: list[str] | None = None) -> int:
                 {"name": cfg.get("name"), "missing_after": missing_cal_dirs(dataset_root(cfg), cfg)},
             )
             # #endregion
-        layout = check_dataset_layout(cfg, allow_missing_cal=False)
+        allow_missing_cal = bool(args.check_only and cfg.get("carve_cal") and missing)
+        layout = check_dataset_layout(cfg, allow_missing_cal=allow_missing_cal)
         # #region agent log
         _dbg(
             "B",
@@ -172,7 +177,7 @@ def main(argv: list[str] | None = None) -> int:
                 "name": cfg.get("name"),
                 "ok": layout.get("ok"),
                 "errors": layout.get("errors"),
-                "allow_missing_cal": False,
+                "allow_missing_cal": allow_missing_cal,
             },
         )
         # #endregion
